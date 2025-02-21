@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <stdio.h>
+#include <math.h>
 
 double get_lambda(double x, double y)
 {
@@ -87,9 +88,10 @@ void restore_F_2d(
   {
     for (int i = 1; i < size - 1; ++i) 
     {
+      auto x = i * step;
       double lambda_plus_half = avg(lambda[i][idx], lambda[i + 1][idx]);
       double lambda_minus_half = avg(lambda[i][idx], lambda[i - 1][idx]);
-      double temp = lambda_plus_half * (y[i + 1][idx] - y[i][idx]) - lambda_minus_half * (y[i][idx] - y[i - 1][idx]);
+      double temp = lambda_plus_half * (y[i + 1][idx] - y[i][idx]) - lambda_minus_half * (y[i][idx] - y[i - 1][idx]) + 25 * cos(x);
       F[i][idx] = y[i][idx] / time_step + temp / (2 * step * step);
     }
   }
@@ -175,7 +177,6 @@ int main(int argc, char **argv)
 {
   const int size = 30;
 
-  const double time_step = 0.2;
   // const double time_min = 0;
   // const double time_max = 10;
   const int time_iterations = 3000; // (time_max - time_min) / time_step; 
@@ -191,6 +192,8 @@ int main(int argc, char **argv)
   const double T_left = 600;
   const double T_right = 1200;
 
+  const double time_step = std::min(x_step, y_step);
+  
   int rank, process_count;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
